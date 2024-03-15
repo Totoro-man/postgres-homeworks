@@ -48,7 +48,7 @@ conn = psycopg2.connect(
 )
 
 o_util = OtherUtils(conn)
-o_util.execute_sql_from_file('create_tables.sql')
+o_util.execute_sql_from_file('create_tables.sql',True)
 
 fill_table('north_data/customers_data.csv', 'customers', 3)
 fill_table('north_data/employees_data.csv', 'employees', 6)

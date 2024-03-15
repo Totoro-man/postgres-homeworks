@@ -1,4 +1,13 @@
 -- SQL-команды для создания таблиц
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS employees;
+
+
 CREATE TABLE customers (
     customer_id VARCHAR(5) PRIMARY KEY,
     company_name VARCHAR(50) NOT NULL,

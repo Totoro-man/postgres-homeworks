@@ -25,7 +25,7 @@ conn = psycopg2.connect(
 )
 
 o_util = OtherUtils(conn)
-o_util.execute_sql_from_file('northwind_script.sql')
+o_util.execute_sql_from_file('northwind_script.sql',True)
 
 conn.commit()
 conn.close()
