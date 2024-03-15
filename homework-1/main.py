@@ -1,31 +1,9 @@
 """Скрипт для заполнения данными таблиц в БД Postgres."""
-import psycopg2
-from psycopg2 import sql
+from utils.utils import *
 import csv
 
 PASSWORD = "admin"
-DATABASE_NAME = "north_data"
-
-
-def check_database_exist():
-    with check.cursor() as cur:
-        query = f"SELECT datname FROM pg_catalog.pg_database WHERE datname = '{DATABASE_NAME}'"
-        cur.execute(query)
-        result = bool(cur.rowcount)
-    return result
-
-
-def create_database():
-    with check.cursor() as cur:
-        cur.execute(sql.SQL('CREATE DATABASE {};').format(sql.Identifier(DATABASE_NAME)))
-
-
-def create_tables():
-    f = open('create_tables.sql', 'r')
-    queries = f.read().split(';')
-    with conn.cursor() as cur:
-        for i in queries:
-            cur.execute(i)
+DATABASE_NAME = "north"
 
 
 def read_data_file(file_name: str):
@@ -40,76 +18,41 @@ def read_data_file(file_name: str):
     return data
 
 
-def fill_table_customers():
-    data = []
-    with open('north_data/customers_data.csv', 'r', encoding='utf-8') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        for row in csv_reader:
-            if not line_count == 0:
-                data.append(row)
-            line_count += 1
-    query = f'INSERT INTO customers VALUES (%s, %s, %s)'
+def fill_table(file_name: str, table_name: str, fields_amount: int):
+    data = read_data_file(file_name)
+    placeholder = ', '.join(['%s' for i in range(fields_amount)])
+    query = f'INSERT INTO {table_name} VALUES ({placeholder})'
     with conn.cursor() as cur:
         cur.executemany(query, data)
 
 
-def fill_table_employees():
-    data = []
-    with open('north_data/employees_data.csv', 'r', encoding='utf-8') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        for row in csv_reader:
-            if not line_count == 0:
-                data.append(row)
-            line_count += 1
-    query = f'INSERT INTO employees VALUES (%s, %s, %s, %s, %s, %s)'
-    with conn.cursor() as cur:
-        cur.executemany(query, data)
+"""
+    В этом блоке:
+    Проверяем существование базы DATABASE_NAME
+    Создаем ее если нет
+"""
+b_utils = BaseUtils(PASSWORD, DATABASE_NAME)
+b_utils.init_base()
 
-
-def fill_table_orders():
-    data = []
-    with open('north_data/orders_data.csv', 'r', encoding='utf-8') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        for row in csv_reader:
-            if not line_count == 0:
-                data.append(row)
-            line_count += 1
-    query = f'INSERT INTO orders VALUES (%s, %s, %s, %s, %s)'
-    with conn.cursor() as cur:
-        cur.executemany(query, data)
-
-
-check = psycopg2.connect(
-    database="postgres",
-    user='postgres',
-    password=PASSWORD,
-    host='localhost',
-    port='5432'
-)
-check.autocommit = True
-
-if not check_database_exist():
-    create_database()
-check.close()
-
+"""
+    В этом блоке:
+    Создаем таблицы скриптами из файла create_tables.sql
+    Заполняем созданные таблицы
+"""
 conn = psycopg2.connect(
-    database="north_data",
+    database=DATABASE_NAME,
     user='postgres',
     password=PASSWORD,
     host='localhost',
     port='5432'
 )
 
-create_tables()
-# conn.commit()
-# conn.close()
+o_util = OtherUtils(conn)
+o_util.execute_sql_from_file('create_tables.sql')
 
-fill_table_customers()
-fill_table_employees()
-fill_table_orders()
+fill_table('north_data/customers_data.csv', 'customers', 3)
+fill_table('north_data/employees_data.csv', 'employees', 6)
+fill_table('north_data/orders_data.csv', 'orders', 5)
 
 conn.commit()
 conn.close()

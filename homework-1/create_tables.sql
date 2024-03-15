@@ -1,3 +1,4 @@
+-- SQL-команды для создания таблиц
 CREATE TABLE customers (
     customer_id VARCHAR(5) PRIMARY KEY,
     company_name VARCHAR(50) NOT NULL,
